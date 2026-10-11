@@ -9,7 +9,6 @@
 
 > 데모 영상: <!-- TODO: Warudo 3-아바타 비교(손상 입력 / 보정 출력 / 원본) 영상 링크 또는 GIF -->
 
----
 
 ## 요구사항과 호환
 
@@ -22,7 +21,6 @@
 | 아바타 | 정규화 VRM (T-포즈에서 모든 본 회전 0) |
 | 지연 | 출력 지연 67 ms (2프레임, 튐 완화용) + 처리 p95 약 15~25 ms. 시작·재연결 직후 1초는 원본 통과 |
 
----
 
 ## 빠른 시작
 
@@ -72,7 +70,22 @@ in 1325 out 1323 | 처리 p95  14.3 ms max  24.4 | 예산초과 0.0% | … | 오
 | 상태 보기 | `python AI_Streaming/server.py --status` | 콘솔 통계 |
 | 종료 | `python AI_Streaming/server.py --stop` 또는 창에서 Ctrl+C | 콘솔에서 `q` |
 
----
+
+## 폴더 구성
+
+| 경로 | 역할 |
+|---|---|
+| `AI_Streaming/vmc_bridge.py` | 서비스 본체 — VMC 수신, 좌표 정규화, 보정, 송신, 자체 점검 |
+| `AI_Streaming/server.py`, `control.py`, `server_config.json`, `start_server.bat` | 상시 실행 supervisor, 상태·제어 HTTP, 설정 |
+| `AI_Streaming/corrector.py` | 실시간 보정기 (링버퍼 → 모델 → 저역통과 → 사영) |
+| `AI_Streaming/contract.py`, `retarget.py`, `rig_tpose.json`, `sinks.py`, `paths.py` | 프레임 규약, 리그 ↔ VRM 좌표 변환, VMC 송신, 경로 |
+| `AI_model/` | 모델 구조, 저역통과, 충돌 사영, FK 물리, 골격 정의 |
+| `checkpoints/temp.pth` | 학습된 모델 가중치 (이 파일 하나, 하위 폴더 없이) |
+| `Sample_Data/Standard_BoneOffsets.csv` | 표준 골격 뼈 길이 (FK·관통 판정에 필수) |
+
+폴더 구조를 바꾸면 경로를 찾지 못합니다. 옵션·상태 HTTP·문제 해결은 `AI_Streaming/USAGE.md`,
+동작 원리·실측 상세는 `AI_Streaming/README.md` 를 참고하십시오.
+
 
 ## 동작 방식
 
@@ -107,7 +120,6 @@ in 1325 out 1323 | 처리 p95  14.3 ms max  24.4 | 예산초과 0.0% | … | 오
 
 - 아바타 신장 차이 ±15% 까지는 판정에 영향이 없음을 실측했습니다. 극단적인 체형·큰 의상은 측정하지 않았습니다.
 
----
 
 ## 결과 한눈에
 
@@ -135,7 +147,6 @@ in 1325 out 1323 | 처리 p95  14.3 ms max  24.4 | 예산초과 0.0% | … | 오
 
 장비 없이 같은 확인을 10초 만에 직접 해 볼 수 있습니다 → [자체 점검](#2-자체-점검-장비-불필요-약-10초).
 
----
 
 ## 운영 안정성
 
@@ -148,7 +159,6 @@ in 1325 out 1323 | 처리 p95  14.3 ms max  24.4 | 예산초과 0.0% | … | 오
 - 중복 실행 방지, 크기 제한 회전 로그, 로컬 전용 상태·제어 HTTP.
 - 장애 주입 시험 10/10 통과 (기동, 중복 실행 거부, 원격 bypass, 강제 종료 후 재시작, 트래커 재연결 등).
 
----
 
 ## 알려진 한계
 
@@ -161,24 +171,6 @@ in 1325 out 1323 | 처리 p95  14.3 ms max  24.4 | 예산초과 0.0% | … | 오
 | 본 롤 | 손바닥 방향·팔 롤·발 기울기는 아바타의 T-포즈 가정(`rig_tpose.json`)에 따라 어긋날 수 있습니다 |
 | 미검증 | 60 fps 이상 트래커, 프리즈·텔레포트·트래커 소실 같은 손상 유형 |
 
----
-
-## 폴더 구성
-
-| 경로 | 역할 |
-|---|---|
-| `AI_Streaming/vmc_bridge.py` | 서비스 본체 — VMC 수신, 좌표 정규화, 보정, 송신, 자체 점검 |
-| `AI_Streaming/server.py`, `control.py`, `server_config.json`, `start_server.bat` | 상시 실행 supervisor, 상태·제어 HTTP, 설정 |
-| `AI_Streaming/corrector.py` | 실시간 보정기 (링버퍼 → 모델 → 저역통과 → 사영) |
-| `AI_Streaming/contract.py`, `retarget.py`, `rig_tpose.json`, `sinks.py`, `paths.py` | 프레임 규약, 리그 ↔ VRM 좌표 변환, VMC 송신, 경로 |
-| `AI_model/` | 모델 구조, 저역통과, 충돌 사영, FK 물리, 골격 정의 |
-| `checkpoints/temp.pth` | 학습된 모델 가중치 (이 파일 하나, 하위 폴더 없이) |
-| `Sample_Data/Standard_BoneOffsets.csv` | 표준 골격 뼈 길이 (FK·관통 판정에 필수) |
-
-폴더 구조를 바꾸면 경로를 찾지 못합니다. 옵션·상태 HTTP·문제 해결은 `AI_Streaming/USAGE.md`,
-동작 원리·실측 상세는 `AI_Streaming/README.md` 를 참고하십시오.
-
----
 
 ## 학습·평가 및 데이터
 
