@@ -19,11 +19,12 @@
   - [5. Control](#5-control)
 - [폴더 구성](#폴더-구성)  
 
-#### Additional Documents (for Engineering)
+#### Engineering Documents
 - [동작 방식](#동작-방식)
   - [관통 판정 기준](#관통-판정-기준)  
 - [결과 한눈에](#결과-한눈에)
 - [운영 안정성](#운영-안정성)
+- [Bone Map](#bone-map)
 - [알려진 한계](#알려진-한계)
 - [학습·평가 및 데이터](#학습평가-및-데이터)
 - [라이선스](#라이선스)
@@ -143,6 +144,8 @@ Mocap_Retargeting_AI/
 폴더 구조를 바꾸면 경로를 찾지 못합니다. 옵션·상태 HTTP·문제 해결은 `AI_Streaming/USAGE.md`,
 동작 원리·실측 상세는 `AI_Streaming/README.md` 를 참고하십시오.
 
+# Additional Documents (for Engineering)
+
 ## 동작 방식
 
 ```
@@ -212,6 +215,56 @@ Mocap_Retargeting_AI/
 - 트래커가 끊기면 송신을 멈추고(Warudo 는 마지막 포즈 유지), 다시 연결되면 자동으로 이어집니다.
 - 중복 실행 방지, 크기 제한 회전 로그, 로컬 전용 상태·제어 HTTP.
 - 장애 주입 시험 10/10 통과 (기동, 중복 실행 거부, 원격 bypass, 강제 종료 후 재시작, 트래커 재연결 등).
+
+## Bone Map
+
+모델이 다루는 본은 아래 21개입니다. 이름은 Unity HumanBodyBones / VMC 철자 그대로이고, `[n]` 은 모델 텐서 안의 관절 번호입니다.
+
+```
+Hips [2]  (루트 — 위치도 함께 전달)
+├── Spine [20]
+│   └── Chest [0]
+│       ├── Neck [11]
+│       │   └── Head [1]
+│       ├── LeftShoulder [7]
+│       │   └── LeftUpperArm [9]
+│       │       └── LeftLowerArm [5]
+│       │           └── LeftHand [4]
+│       └── RightShoulder [16]
+│           └── RightUpperArm [18]
+│               └── RightLowerArm [14]
+│                   └── RightHand [13]
+├── LeftUpperLeg [10]
+│   └── LeftLowerLeg [6]
+│       └── LeftFoot [3]
+│           └── LeftToes [8]
+└── RightUpperLeg [19]
+    └── RightLowerLeg [15]
+        └── RightFoot [12]
+            └── RightToes [17]
+```
+
+**텐서 배치** — 한 프레임은 87차원입니다.
+
+| 범위 | 내용 |
+|---|---|
+| `[0:3]` | Hips 위치 (m) — 모델이 바꾸지 않고 그대로 통과 |
+| `[3 + 4n : 7 + 4n]` | 관절 n 의 로컬 회전 쿼터니언 `(x, y, z, w)`. n 은 본 이름의 알파벳순 (Chest = 0 … Spine = 20) |
+
+**관통 보장 4쌍이 쓰는 구간** (캡슐 = 두 본을 잇는 선분)
+
+| 쌍 | 구간 A | 구간 B |
+|---|---|---|
+| 왼 아래팔 ↔ 몸통 | LeftLowerArm → LeftHand | Hips → Chest |
+| 오른 아래팔 ↔ 몸통 | RightLowerArm → RightHand | Hips → Chest |
+| 아래팔 ↔ 아래팔 | LeftLowerArm → LeftHand | RightLowerArm → RightHand |
+| 정강이 ↔ 정강이 | LeftLowerLeg → LeftFoot | RightLowerLeg → RightFoot |
+
+**21개 밖의 본**
+
+- `UpperChest` — 트래커가 보내면 Chest 에 합쳐(Chest·UpperChest) 모델에 넣고, 보낼 때 원래대로 나눕니다.
+- 손가락·눈·턱, 표정(BlendShape), Root — 보정하지 않고 그대로 통과합니다.
+- 21개 중 하나라도 들어오지 않으면 프레임을 만들지 않고 Warudo 로 아무것도 보내지 않습니다. 콘솔에 `수신 대기… (빠진 본 [...])` 가 5초마다 찍힙니다.
 
 ## 알려진 한계
 
