@@ -19,7 +19,7 @@
   - [5. Control](#5-control)
 - [폴더 구성](#폴더-구성)  
 
-#### Engineering Documents
+#### Additional Documents (for Engineering)
 - [동작 방식](#동작-방식)
   - [관통 판정 기준](#관통-판정-기준)  
 - [결과 한눈에](#결과-한눈에)
