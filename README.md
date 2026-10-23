@@ -7,7 +7,7 @@
 모캡 장비 ──VMC(UDP 39540)──▶ [ 보정 서비스 ] ──VMC(UDP 39539)──▶ Warudo
 ```
 
-> 데모 영상: 
+> 데모 영상: Left: Collision / Right: Retargeting / emit_log: 5
 
 ![demo](assets/demo.gif)
 
