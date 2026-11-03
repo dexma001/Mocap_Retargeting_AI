@@ -8,19 +8,7 @@ class TransformerDenoiser(nn.Module):
     입력: [Batch, Seq, 87] = Hips Position(3) + 21개 관절 Local Quaternion(84)
     출력: [Batch, Seq, 87] = Hips Position(3, 원본 통과) + 교정된 21개 관절 Quaternion(84)
 
-    PVTVAE 대비 바뀐 것 (제거된 '장식' 부분):
-      - fc_mu / fc_var / reparameterize / KL 손실 삭제 → 완전 결정론적.
-        (분석 근거: 추론은 어차피 mu만 쓰는 결정론이었고, posterior collapse라는
-         실패 유형과 λ_KL 하이퍼파라미터 하나를 통째로 제거한다.)
-      - encoded.mean(dim=1) 평균 풀링 삭제 → 30프레임을 단 하나의 벡터로 짓누르던
-        "1프레임 분량 정보 병목"을 해소하고, 프레임별(per-frame) 64차원 잠재를 유지.
-
-    PVTVAE와 동일하게 유지된 것 (하중을 받는(load-bearing) 부분):
-      - Residual delta 예측 + 관절별 쿼터니언 재정규화 (준-항등 사상의 표현을
-        쉽게 만들어 clean 시나리오 99.9%대를 가능하게 한 설계 — 반드시 유지).
-      - 인코더/디코더 층수, d_model, head 수, 잠재 폭(latent_dim=64), positional
-        embedding — 용량이 같아야 "VAE 기계 장치의 유무"만 비교하는 공정한 ablation이 된다.
-      - Hips 위치는 교정 대상이 아니므로 그대로 통과.
+    VAE -> Transformer
     """
 
     def __init__(self, input_dim=87, output_dim=84, latent_dim=64,
@@ -36,15 +24,15 @@ class TransformerDenoiser(nn.Module):
         # 1+. Positional Encoding
         self.pos_embedding = nn.Parameter(torch.randn(1, seq_len, d_model))
 
-        # 2. Encoder (PVTVAE와 동일 구성)
+        # 2. Encoder 
         encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.encoder_transformer = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
 
         # 3. 프레임별 결정론적 병목 (구 fc_mu/fc_var 자리)
-        #    - 잠재 폭은 PVTVAE와 같은 64를 유지하되, 시퀀스 전체가 아니라 '프레임마다' 하나씩.
+        # VAE 잔재 -> 추후 수정 필요 *****
         self.frame_latent = nn.Linear(d_model, latent_dim)
 
-        # 4. Decoder — 프레임별 잠재를 쿼리로, 인코더 출력에 cross-attention (PVTVAE와 동일 배선)
+        # 4. Decoder — 프레임별 잠재를 쿼리로, 인코더 출력에 cross-attention
         self.decoder_proj = nn.Linear(latent_dim, d_model)
         decoder_layer = nn.TransformerDecoderLayer(d_model=d_model, nhead=nhead, batch_first=True)
         self.decoder_transformer = nn.TransformerDecoder(decoder_layer, num_layers=num_layers)
@@ -62,7 +50,7 @@ class TransformerDenoiser(nn.Module):
 
         encoded = self.encoder_transformer(h)              # [B, S, d_model]
 
-        # 프레임별 잠재 (샘플링 없음, 평균 풀링 없음)
+        # VAE 잔재 -> 추후 수정 필요 *****
         z = self.frame_latent(encoded)                     # [B, S, latent_dim]
 
         dec_in = self.decoder_proj(z)                      # [B, S, d_model]
@@ -85,8 +73,6 @@ class TransformerDenoiser(nn.Module):
 class TransformerDenoiserCompat(TransformerDenoiser):
     """
     공유 파이프라인(evaluate.py / inference.py / demo_maker.py) 호환용 어댑터.
-    이들 소비 코드는 (out, mu, logvar) 3-튜플 반환을 언패킹하므로(구 PVTVAE 시그니처와
-    호환), 동일한 시그니처로 맞춰준다 (mu/logvar 자리는 None).
     서브클래스라 state_dict 키가 TransformerDenoiser와 완전히 동일 →
     train.py가 저장한 가중치를 그대로 로드할 수 있다.
     """

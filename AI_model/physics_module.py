@@ -65,7 +65,7 @@ class DifferentiablePhysics(nn.Module):
         return offsets
 
     # ------------------------------------------------------------------
-    # 쿼터니언 연산 (Unity 좌표계 x, y, z, w 규약)
+    # Quaternion Calculation (Unity 좌표계 x, y, z, w 규약)
     # ------------------------------------------------------------------
     def quat_multiply(self, q1, q2):
         x1, y1, z1, w1 = q1[..., 0], q1[..., 1], q1[..., 2], q1[..., 3]
@@ -84,7 +84,7 @@ class DifferentiablePhysics(nn.Module):
         return v + q_w * t + torch.cross(q_xyz, t, dim=-1)
 
     # ------------------------------------------------------------------
-    # 순방향 운동학 (Forward Kinematics)
+    # Forward Kinematics
     # ------------------------------------------------------------------
     def forward_kinematics(self, hips_pos, quats_84):
         """
@@ -112,7 +112,7 @@ class DifferentiablePhysics(nn.Module):
         return global_pos
 
     def compute_global_pos_tensor(self, hips_pos, quats_84):
-        """FK 결과를 [..., 21, 3] 텐서로 반환 (jitter/MPJPE 계산 편의용)."""
+        """FK 결과를 [..., 21, 3] 텐서로 반환."""
         gp = self.forward_kinematics(hips_pos, quats_84)
         return torch.stack([gp[name] for name in self.bone_names], dim=-2)
 
