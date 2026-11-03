@@ -220,7 +220,7 @@ Mocap_Retargeting_AI/
 
 ## Bone Map
 
-모델이 다루는 본은 아래 21개입니다. 이름은 Unity HumanBodyBones / VMC 철자 그대로이고, `[n]` 은 모델 텐서 안의 관절 번호입니다(알파벳 순서).
+모델이 다루는 본은 아래 21개입니다. 이름은 Unity HumanBodyBones / VMC 철자 그대로이고, `[n]` 은 모델 텐서 안의 관절 번호입니다.
 
 ```
 Hips [2]  (루트 — 위치도 함께 전달)
