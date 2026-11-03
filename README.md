@@ -43,10 +43,10 @@ Mocap ──VMC(UDP 39540)──▶ [ Retargeting Service ] ──VMC(UDP 39539)
 |---|---|
 | OS / 실행 환경 | Windows 10 이상, Python 3.11 (검증: 3.11.9, torch 2.2.2), **CPU 만으로 동작** |
 | Protocol | VMC (OSC over UDP). 입력 39540, 출력 39539 (Default Value for Warudo) |
-| Requirements Data | **전신 21개 본**(골반·척추·목·머리·어깨·팔·다리, [목록](#bone-map))을 모두 보내야 보정 시작.<br><br>**하나라도 빠지면 Warudo 로 아무것도 나가지 않아 아바타가 움직이지 않습니다** (Console에 빠진 Bone 표시). |
+| Requirements Data | **전신 21개 본**(골반·척추·목·머리·어깨·팔·다리, [목록](#bone-map))을 모두 보내야 보정 시작.<br>**하나라도 빠지면 Warudo 로 아무것도 나가지 않아 아바타가 움직이지 않습니다** (Console에 빠진 Bone 표시). |
 | Frame rate | 30 fps 로 처리. 더 빠른 트래커는 최신 프레임만 사용 |
 | Avater | 정규화 VRM (Default: T-pose) |
-| Delay | 출력 지연 67 ms (2프레임, 튐 완화용) + 처리 p95 약 15~25 ms.<br><br>시작·재연결 직후 1초는 원본 통과 |
+| Delay | 출력 지연 67 ms (2프레임, 튐 완화용) + 처리 p95 약 15~25 ms.<br>시작·재연결 직후 1초는 원본 통과 |
 
 <br>
 
@@ -242,7 +242,7 @@ Mocap_Retargeting_AI/
 | 프레임 처리 시간 p95 | 약 14 ms (30fps 예산 33.3 ms, 초과 0%) |
 | 보정 예외 / 송신 실패 | 0 / 0 |
 
-장비 없이 같은 확인을 10초 만에 직접 해 볼 수 있습니다 → [자체 점검](#3-self-test-no-equipments-need).
+장비 없이 같은 확인을 10초 만에 직접 해 볼 수 있습니다 → [Self Test](#3-self-test-no-equipments-need).
 
 <br>
 
