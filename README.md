@@ -341,3 +341,7 @@ Hips [2]  (루트 — 위치도 함께 전달)
 ## 학습·평가 및 데이터
 
 - 학습·데이터·평가·시각화 코드와 전체 실험 기록: https://github.com/dexma001/MCC
+
+<br>
+##LICENSE
+ML Dataset: https://github.com/BandaiNamcoResearchInc/Bandai-Namco-Research-Motiondataset
